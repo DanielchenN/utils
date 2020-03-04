@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+<button onclick="fn()">111111111</button>
+</body>
+
+<script>
+
+  let count = 1
+  const fn = function() {
+    window.localStorage.setItem('sampleList', `2222${count++}`)
+  }
+
+  window.addEventListener('storage', () => {
+  // When local storage changes, dump the list to
+  // the console.
+    console.log(JSON.parse(window.localStorage.getItem('sampleList')));    
+});
+</script> 
+</html>
