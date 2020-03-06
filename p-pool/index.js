@@ -6,7 +6,7 @@ class PromisePool {
     this._items = items
   }
   for(items) {
-    this.items = items
+    this._items = items
     return this
   }
   limit(amount) {
@@ -18,7 +18,7 @@ class PromisePool {
       poolSize: this._poolSize,
       items: this._items,
       cb
-    }).process()
+    }).process(cb)
   }
 }
 

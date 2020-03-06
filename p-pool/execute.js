@@ -1,23 +1,30 @@
-class PromiseExecute {s
-  constructor(poolSize = 10, items =[]) {
+const EventEmitter = require('events');
+class PromiseExecute extends EventEmitter {
+  constructor ( {poolSize = 10, items =[]} ) {
+    super()
     this.poolSize = poolSize
     this.items = items
     this.active = 0
     this.waiting = []
     this.result = []
+    this.mapCount = -1
   }
 
-  shouldPending () {
+  shouldWaiting () {
     return this.active >= this.poolSize
   }
 
-  isEnd() {
+  isAllFinished() {
+    return !this.hasActive() && !this.waiting.length
+  }
 
+  hasActive() {
+    return this.active > 0
   }
 
   async addQueue() {
     return new Promise(resolve => {
-      this.pending.push(resolve)
+      this.waiting.push(resolve)
     })
   }
 
@@ -27,12 +34,15 @@ class PromiseExecute {s
       const resolve = this.waiting.shift()
       await resolve()
     }
+    if(this.isAllFinished()) {
+      this.emit('finish')
+    }
   }
 
-  async execute(cb, item){
+  async execute(cb, item, count){
     this.active ++
     this.result.push(
-      await cb(item)
+      await cb(item, count)
     )
     // 一个执行完了，需要接入另一个
     this.next()
@@ -40,18 +50,23 @@ class PromiseExecute {s
 
   async process (cb) {
     for (let item of this.items) {
-      if (this.shouldPending()) {
-        // @TODO: pending
+      this.mapCount++
+      if (this.shouldWaiting()) {
+        // pending queue
         await this.addQueue()
       }
-      this.execute(cb, item)
+      this.execute(cb, item, this.mapCount)
     }
     return this.end()
   }
 
   async end() {
-    if(!this.isEnded()) {
+    if(this.hasActive()) {
       // 这里有点烦，上面的实际上是移步的，这里需要等最后一个结束。可以传入一个promise但是，传递太多。
+      await new Promise(resolve => {
+        // 有意思的操作，可以通过发布订阅
+        this.once('finish', resolve)
+      })
     }
     return {
       result: this.result
