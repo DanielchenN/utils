@@ -38,7 +38,7 @@ class PromiseExecute extends EventEmitter {
       this.emit('finish')
     }
   }
-
+  //@TODO: error handle
   async execute(cb, item, count){
     this.active ++
     this.result.push(
