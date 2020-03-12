@@ -6,7 +6,12 @@
 
 const parser = function(str) {
   let i = 0
-  const parseObject = function(str) {
+
+  const value = parseValue()
+
+  return value
+
+  function parseObject() {
     if (str[i] === '{') {
       i ++
       skipWhiteSpace()
@@ -18,7 +23,7 @@ const parser = function(str) {
 
         if(!first) {
           skipComma()
-          skipWhitespace()
+          skipWhiteSpace()
         }
 
         const key = parseString()
@@ -29,22 +34,28 @@ const parser = function(str) {
         first = false
 
       }
+     return result
+
     }
   }
 
   function parseArray () {
 
     if (str[i]= '[') {
+      i++
       let first = true
       const result = []
       skipWhiteSpace()
-      while (str[i] !== ']') {
+      while (i < str.length && str[i] !== ']') {
         if(!first) {
           skipComma()
         }
+        first = false
         const res = parseValue()
         result.push(res)
       }
+      i ++
+      return result
     }
   } 
 
@@ -60,7 +71,7 @@ const parser = function(str) {
     if(str[i] === '"') {
       i++
       let result = ""
-      while (str[i] === '"' && i < str.length ) {
+      while (str[i] !== '"' && i < str.length ) {
         // 要吞掉第一个转义
         if(str[i] === '\\') {
           const char = str[i + 1];
@@ -80,7 +91,7 @@ const parser = function(str) {
           } else if (char ==='u') {
             // @TODO: unicode
           } else {
-            
+
           }
         } else {
           result += str[i]
@@ -94,6 +105,39 @@ const parser = function(str) {
 
   }
 
+  function parseNumber() {
+    let start = i
+    if(str[i] === '0') {
+      i++
+    } else if(str[i] >= "1" && str[i] <= "9") {
+      i++
+      while(str[i] >= "0" && str[i] <= "9") {
+        i++
+      }
+    }
+
+    if(str[i] === '.') {
+      i++
+      // @TODO: error hanle
+      while (str[i] >= "0" && str[i] <= "9") {
+        i++
+      }
+    }
+
+    if (i > start) {
+      return Number(str.slice(start, i));
+    }
+  }
+
+
+  function parseKeyword(name, value) {
+    if (str.slice(i, i + name.length) === name) {
+      i += name.length;
+      return value;
+    }
+  }
+
+
   function skipWhiteSpace() {
     while (str[i] === ' ' || str[i] === '\t' || str[i] === '\r' || str[i] === '\n') {
       i++
@@ -104,12 +148,17 @@ const parser = function(str) {
     if (str[i] !== ':') {
       throw new Error(`position ${i} Expected to be :`)
     }
+    i++
   }
 
   function skipComma() {
     if (str[i] !== ',') {
       throw new Error(`position ${i} Expected to be :`)
     }
+    i++
   }
 
 }
+
+var a = parser('{"a": "123", "chidren": "{}"}')
+console.log('a', a)
